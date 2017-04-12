@@ -24,8 +24,11 @@ $server->on('open', function (swoole_websocket_server $server, $request) {
 });
 
 $server->on('message', function (swoole_websocket_server $server, $frame) {
+    echo "===== RAW message ====\n";
+    echo PacketParser::hexString($frame->data);
+
     list($meta, $data) = PacketParser::parse($frame->data);
-    echo "===== meta ====\n";
+    echo "\n===== meta ====\n";
     print_r($meta);
     echo "===== data ====\n";
     foreach($data as $v) {
