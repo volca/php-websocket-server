@@ -1,4 +1,7 @@
 <?php
+require __DIR__ . '/vendor/autoload.php';
+
+use AprBrother\PacketParser;
 
 function saveLog($msg) {
     // DATE_ATOM - msg
@@ -21,17 +24,17 @@ $server->on('open', function (swoole_websocket_server $server, $request) {
 });
 
 $server->on('message', function (swoole_websocket_server $server, $frame) {
-    //saveData($frame->data);
-    $arr = explode("\r\n", $frame->data);
-    $meta = array_shift($arr);
-    array_shift($arr);
-    if (empty($meta)) {
-        $device = new stdClass();
-    } else {
-        $device = json_decode($meta);
+    list($meta, $data) = PacketParser::parse($frame->data);
+    echo "===== meta ====\n";
+    print_r($meta);
+    echo "===== data ====\n";
+    foreach($data as $v) {
+        $iBeacon = (int)PacketParser::isIbeacon($v);
+        echo "mac: $v->macAddress rssi: $v->rssi iBeacon: $iBeacon adv:";
+        echo PacketParser::hexString($v->rawData);
+        echo "\n";
     }
-    $device->beacon_count = count($arr);
-    saveLog(json_encode($device));
+    //saveLog(json_encode($device));
 });
 
 $server->on('close', function ($ser, $fd) {
